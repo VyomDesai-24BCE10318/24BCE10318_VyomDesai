@@ -1,0 +1,45 @@
+show databases;
+
+create database VITBHOPAL;
+use VITBHOPAL;
+
+ create table CSE(
+ sid int8,
+ sname varchar(50),
+ smarks int1
+ );
+  create table Mech(
+ sid int8,
+ sname varchar(50),
+ smarks int1
+ );
+  create table EEE(
+ sid int8,
+ sname varchar(50),
+ smarks int1
+ );
+ show tables from VITBHOPAL;
+ 
+ select * from CSE;
+ insert into CSE values(101,"Kaushal",90);
+ insert into CSE values(102,"Anurag",30);
+ insert into CSE values(103,"Vyom",89);
+ insert into CSE values(104,"Udayraj",20);
+ insert into CSE values(105,"Jayesh",85);
+ 
+  select * from Mech;
+ insert into Mech values(106,"Mahesh",80);
+ insert into Mech values(107,"Rakesh",70);
+ insert into Mech values(108,"Om",60);
+ insert into Mech values(109,"Jay",50);
+ insert into Mech values(110,"Sambhav",55);
+ 
+ select * from EEE;
+ insert into EEE values(111,"Anand",99);
+ insert into EEE values(112,"Harsh",95);
+ insert into EEE values(113,"Shubham",35);
+ insert into EEE values(114,"Udit",45);
+ insert into EEE values(115,"Sujal",65);
+ 
+ 
+ 
