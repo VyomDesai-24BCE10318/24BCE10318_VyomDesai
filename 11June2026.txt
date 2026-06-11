@@ -1,0 +1,232 @@
+Sharding:
+rs.initiate({
+  _id: "configReplSet",
+  configsvr: true,
+  members: [
+    { _id: 0, host: "127.0.0.1:27019" }
+  ]
+})
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182070, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182070, i: 1 })
+}
+configReplSet [direct: primary] test
+rs.initiate({
+  _id: "shard1ReplSet",
+  members: [
+    { _id: 0, host: "127.0.0.1:27011" }
+  ]
+})
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182102, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182102, i: 1 })
+}
+shard1ReplSet [direct: primary] test
+rs.initiate({
+  _id: "shard2ReplSet",
+  members: [
+    { _id: 0, host: "127.0.0.1:27012" }
+  ]
+})
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182174, i: 1 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182174, i: 1 })
+}
+shard2ReplSet [direct: primary] test
+sh.addShard("shard1ReplSet/127.0.0.1:27011")
+sh.addShard("shard2ReplSet/127.0.0.1:27012")
+{
+  shardAdded: 'shard2ReplSet',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182214, i: 3 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182214, i: 3 })
+}
+sh.enableSharding("eCommerceDB")
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182224, i: 21 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182224, i: 21 })
+}
+sh.shardCollection("eCommerceDB.orders", { customer_id: "hashed" })
+{
+  collectionsharded: 'eCommerceDB.orders',
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1781182233, i: 21 }),
+    signature: {
+      hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+      keyId: Long('0')
+    }
+  },
+  operationTime: Timestamp({ t: 1781182233, i: 20 })
+}
+use eCommerceDB
+
+for (let i = 0; i < 1000; i++) {
+  db.orders.insertOne({
+    customer_id: "cust_" + i,
+    amount: Math.random() * 100
+  })
+}
+switched to db eCommerceDB
+for (let i = 0; i < 1000; i++) {
+  db.orders.insertOne({
+    customer_id: "cust_" + i,
+    amount: Math.random() * 100
+  })
+}
+{
+  acknowledged: true,
+  insertedId: ObjectId('6a2aaf387865fe06faaea1e5')
+}
+sh.status()
+shardingVersion
+{
+  _id: ObjectId('6a2aae772ef8bbf3f21bcf96'),
+  clusterId: ObjectId('6a2aae772ef8bbf3f21bcf95')
+}
+shards
+[
+  {
+    _id: 'shard1ReplSet',
+    host: 'shard1ReplSet/127.0.0.1:27011',
+    topologyTime: Timestamp({ t: 1781182213, i: 10 }),
+    replSetConfigVersion: -1
+  },
+  {
+    _id: 'shard2ReplSet',
+    host: 'shard2ReplSet/127.0.0.1:27012',
+    topologyTime: Timestamp({ t: 1781182213, i: 58 }),
+    replSetConfigVersion: -1
+  }
+]
+active mongoses
+[
+  {
+    '8.3.2': 1
+  }
+]
+autosplit
+{
+  'Currently enabled': 'yes'
+}
+balancer
+{
+  'Currently enabled': 'yes',
+  'Currently running': 'no',
+  'Failed balancer rounds in last 5 attempts': 0,
+  'Migration Results for the last 24 hours': 'No recent migrations'
+}
+shardedDataDistribution
+[
+  {
+    ns: 'eCommerceDB.orders',
+    shards: [
+      {
+        shardName: 'shard1ReplSet',
+        numOrphanedDocs: 0,
+        numOwnedDocuments: 491,
+        ownedSizeBytes: 30933,
+        orphanedSizeBytes: 0
+      },
+      {
+        shardName: 'shard2ReplSet',
+        numOrphanedDocs: 0,
+        numOwnedDocuments: 509,
+        ownedSizeBytes: 32067,
+        orphanedSizeBytes: 0
+      }
+    ]
+  }
+]
+databases
+[
+  {
+    database: {
+      _id: 'eCommerceDB',
+      primary: 'shard2ReplSet',
+      version: {
+        uuid: UUID('b8c0c362-c48e-40c4-83fe-ab563b2bb468'),
+        timestamp: Timestamp({ t: 1781182224, i: 9 }),
+        lastMod: 1
+      }
+    },
+    collections: {
+      'eCommerceDB.orders': {
+        shardKey: {
+          customer_id: 'hashed'
+        },
+        unique: false,
+        balancing: true,
+        allowMigrations: true,
+        chunkMetadata: [
+          {
+            shard: 'shard1ReplSet',
+            nChunks: 1
+          },
+          {
+            shard: 'shard2ReplSet',
+            nChunks: 1
+          }
+        ],
+        chunks: [
+          {
+            min: {
+              customer_id: MinKey()
+            },
+            max: {
+              customer_id: 0
+            },
+            'on shard': 'shard2ReplSet',
+            'last modified': Timestamp({ t: 1, i: 0 })
+          },
+          {
+            min: {
+              customer_id: 0
+            },
+            max: {
+              customer_id: MaxKey()
+            },
+            'on shard': 'shard1ReplSet',
+            'last modified': Timestamp({ t: 1, i: 1 })
+          }
+        ],
+        tags: []
+      }
+    }
+  }
+]
+[mongos] eCommerceDB
